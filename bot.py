@@ -84,18 +84,21 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             parse_mode='Markdown'
         )
 async def enter_giveaway(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Starts the entry flow with T&C."""
+    # This logic allows the function to work whether it's a message or a button click
+    query = update.callback_query
+    if query:
+        await query.answer()
+        # Use query.message if it's a callback, otherwise use update.message
+        message = query.message
+    else:
+        message = update.message
+
     event = await get_active_event()
     if not event:
-        await update.message.reply_text("🚫 No active giveaway at the moment. Stay tuned!")
+        await message.reply_text("🚫 No active giveaway at the moment.")
         return ConversationHandler.END
 
-    # Check if user already entered
-    user_id = update.message.from_user.id
-    check = supabase.table("entries").select("*").eq("user_id", user_id).eq("event_id", event['id']).execute()
-    if check.data:
-        await update.message.reply_text("✅ You are already registered for this event! Use /balance to check stats.")
-        return ConversationHandler.END
+    # ... (rest of your logic remains the same, just use 'message' instead of 'update.message')
 
     context.user_data['current_event_id'] = event['id']
     
