@@ -1,0 +1,39 @@
+# Environment secrets and local config
+.env
+.env.*
+!.env.example
+
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Build and distribution artifacts
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Runtime and process files
+*.log
+*.pid
+gunicorn*.log
+
+# Coverage and test outputs
+.coverage
+.coverage.*
+htmlcov/
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
