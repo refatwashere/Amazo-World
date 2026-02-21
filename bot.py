@@ -5,7 +5,7 @@ from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
-        [InlineKeyboardButton("Join Community", url="https://t.me/AmazoWorld")],
+        [InlineKeyboardButton("Join Community", url="https://t.me/Amaz0World")],
         [InlineKeyboardButton("Enter Giveaway 🎁", callback_data='enter')]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
