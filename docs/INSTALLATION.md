@@ -1,43 +1,50 @@
-# 🚀 Installation & Deployment Guide
+# Installation and Deployment Guide
 
-Follow these steps to deploy **Amazo-World** to Render.
+## 1. Prerequisites
+- Python 3.10 or newer
+- Supabase project with required tables/RPCs
+- Telegram bot token from `@BotFather`
 
-## Step 1: GitHub Preparation
-1. Create a new private repository.
-2. Ensure your `requirements.txt` includes:
-   - `python-telegram-bot`
-   - `supabase`
-   - `flask`
-   - `gunicorn`
-3. Push your code:
-   
-   ```bash
-   git init
-   git add .
-   git commit -m "Genesis Launch"
-   git push origin main
-   
-## Step 2: Render.com Setup
-- Create a new Web Service.
-- Connect your GitHub repository.
-- Runtime: Python 3.10+
-- Build Command: pip install -r requirements.txt
-- Start Command: gunicorn app:app & python bot.py
+## 2. Install Dependencies
+```bash
+pip install -r requirements.txt
+```
 
-## Step 3: Environment Variables (Secrets)
-Go to the Environment tab in Render and add:
+## 3. Configure Environment
+Create `.env` (or set platform environment variables):
 
-- BOT_TOKEN: From @BotFather.
-- SUPABASE_URL: Your Project URL.
-- SUPABASE_KEY: Your Anon Key.
-- ADMIN_ID: Your numeric Telegram ID.
+```env
+BOT_TOKEN=
+SUPABASE_URL=
+SUPABASE_KEY=
+ADMIN_ID=
+```
 
-## Step 4: Keep-Alive (Cron-Job)
-- Go to cron-job.org.
-- Create a new job pointing to your Render URL (e.g., https://amazo-world.onrender.com/).
-- Set the interval to 12 minutes.
+## 4. Run Locally
+Run the Telegram worker:
 
-## Step 5: Initialize the DB
-- Open the bot on Telegram.
-- Send /new_event 1 | Grand Opening | 2026-03-30.
-- Your bot is now live and ready!
+```bash
+python bot.py
+```
+
+Optional health endpoint:
+
+```bash
+python app.py
+```
+
+## 5. Deploy to Render (Worker)
+- Create a new Worker service
+- Connect repository
+- Build command: `pip install -r requirements.txt`
+- Start command: `python bot.py`
+- Add required environment variables
+
+If you need a public health URL, deploy `app.py` as a separate web service.
+
+## 6. Initialize an Event
+From Telegram (admin account):
+
+```text
+/new_event 1 | Grand Opening | 2026-03-30
+```

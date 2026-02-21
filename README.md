@@ -1,81 +1,83 @@
-# 🌐 Amazo-World: Telegram Giveaway & Referral System
+# Amazo-World
 
-**Amazo-World** is a professional-grade Telegram bot ecosystem designed to manage multi-event crypto giveaways. It features a weighted referral system, automated winner selection, and a complete admin suite.
+A Telegram giveaway and referral bot powered by Python and Supabase.
 
----
+## Features
+- Multi-event giveaway support
+- Referral tracking with weighted winner selection
+- User commands for entry, balance, leaderboard, and history
+- Admin commands for event management, winner selection, and broadcast
 
-## 🛠 Tech Stack
-- **Backend:** Python 3.10+ (python-telegram-bot)
-- **Database:** Supabase (PostgreSQL)
-- **Deployment:** Render (Free Tier)
-- **Keep-Alive:** cron-job.org (12-minute intervals)
+## Tech Stack
+- Python 3.10+
+- `python-telegram-bot`
+- Supabase (PostgreSQL + RPC)
+- Optional Flask health endpoint (`app.py`)
 
----
+## Project Structure
+```text
+Amazo-World/
+  app.py
+  bot.py
+  amazo_bot/
+    config.py
+    logging_config.py
+    telegram_app.py
+    handlers/
+    services/
+  docs/
+  tests/
+```
 
-## 🗄️ Database Architecture (Supabase)
+## Environment Variables
+Create `.env` with:
 
-### 1. Tables
-#### `giveaways`
-- `id`: (Integer, Primary Key) Event Serial Number.
-- `name`: (Text) Name of the giveaway event.
-- `end_date`: (Timestamptz) Expiration date.
-- `is_active`: (Boolean) Current status.
+```env
+BOT_TOKEN=
+SUPABASE_URL=
+SUPABASE_KEY=
+ADMIN_ID=
+```
 
-#### `entries`
-- `user_id`: (BigInt) Telegram User ID.
-- `event_id`: (Integer) Link to `giveaways.id`.
-- `username`: (Text) Telegram handle.
-- `wallet_address`: (Text) User's crypto address.
-- `referral_count`: (Integer) Number of successful invites.
-- `referred_by`: (BigInt) ID of the person who invited them.
+## Local Run
+Install dependencies:
 
-### 2. Custom Functions (SQL)
-- `increment_referral`: Safely updates counts for the inviter.
-- `pick_winners_by_event`: Uses weighted randomness based on referrals to select 3 winners.
+```bash
+pip install -r requirements.txt
+```
 
----
+Run the Telegram worker:
 
-## 🚀 Deployment & Environment Variables
+```bash
+python bot.py
+```
 
-Add the following keys to your Render environment:
+Optional: run health endpoint:
 
-| Key | Description |
-| :--- | :--- |
-| `BOT_TOKEN` | API Token from @BotFather |
-| `SUPABASE_URL` | Your Project URL |
-| `SUPABASE_KEY` | Your Service Role/Anon Key |
-| `ADMIN_ID` | Your numeric Telegram ID |
+```bash
+python app.py
+```
 
-**Build Command:** `pip install -r requirements.txt`  
-**Start Command:** `gunicorn app:app & python bot.py`
+## Render Deployment (Recommended)
+- Service type: Worker
+- Build command: `pip install -r requirements.txt`
+- Start command: `python bot.py`
+- Set environment variables in Render dashboard
 
----
+If you need an HTTP health endpoint, deploy `app.py` as a separate web service.
 
-## 🎮 Commands Reference
+## Commands
+User:
+- `/start`
+- `/enter`
+- `/balance`
+- `/leaderboard`
+- `/history`
+- `/help`
+- `/faq`
 
-### 👤 User Commands
-- `/start` - Launch the bot and view welcome branding.
-- `/enter` - Read & Accept Terms, then register your wallet.
-- `/balance` - Check current event referrals and get your unique link.
-- `/leaderboard` - View top 10 referrers for the active event.
-- `/history` - See past event participations.
-- `/help` - View Frequently Asked Questions.
-
-### ⚡ Admin Commands
-- `/admin` - Dashboard showing total participants and referral stats.
-- `/new_event [ID] | [Name] | [YYYY-MM-DD]` - Start a new giveaway cycle.
-- `/pick [ID]` - Run the drawing to pick 3 winners for a specific event.
-- `/broadcast [message]` - Send a formatted announcement to all users.
-
----
-
-## 📜 Terms & Conditions (Default)
-1. No multiple accounts or botting (Automatic disqualification).
-2. Users must provide valid wallet addresses (Locked after submission).
-3. Rewards are distributed within 48 hours of event closure.
-
----
-
-## 📈 Maintenance
-- **Rate Limiting:** If the community grows past 2,000 members, add a `time.sleep(0.05)` delay in the `/broadcast` loop to avoid Telegram's flood limits.
-- **Database Activity:** Supabase stays active as long as the bot is pinged by `cron-job.org`.
+Admin:
+- `/admin`
+- `/new_event ID | Name | YYYY-MM-DD`
+- `/pick ID`
+- `/broadcast message`

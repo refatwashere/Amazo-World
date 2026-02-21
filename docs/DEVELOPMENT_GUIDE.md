@@ -1,37 +1,33 @@
-# 💻 Web & Bot Development Guide
+# Development Guide
 
-This document explains the logic behind the **Amazo-World** backend and how it interacts with Supabase.
+This guide explains the internal architecture and key flows.
 
-## 1. The "Web" Component (Flask)
-Since Render requires a web port to stay active, we use a simple Flask server inside `app.py`:
-- **Keep-Alive:** The `health_check` route is pinged by `cron-job.org`.
-- **Concurrency:** We run the Flask server and the Telegram Bot simultaneously using a multi-threaded or sub-process approach.
+## Architecture
+- `bot.py`: minimal process entrypoint
+- `amazo_bot/config.py`: environment loading and validation
+- `amazo_bot/telegram_app.py`: app wiring and handler registration
+- `amazo_bot/handlers/`: user and admin command handlers
+- `amazo_bot/services/`: Supabase access and giveaway domain logic
 
-## 2. Referral Engine (Deep Linking)
-The system uses Telegram's `start` parameter:
-- **Link Format:** `https://t.me/YourBot?start=USER_ID`
-- **Logic:** 1. User B clicks User A's link.
-  2. Bot extracts `USER_ID` from the arguments.
-  3. When User B submits a wallet, the bot triggers the `increment_referral` RPC in Supabase for User A.
+## Core Flow: Referral Registration
+1. User opens bot via referral deep-link (`/start <user_id>`).
+2. Referral id is validated and saved in user context.
+3. User runs `/enter` and accepts terms.
+4. User submits wallet.
+5. Entry is inserted into `entries`.
+6. Referrer count is incremented through Supabase RPC.
 
-## 3. Database Functions (Supabase SQL)
-We use **Stored Procedures (RPC)** to ensure data integrity during high-traffic events.
+## Event Lifecycle
+- Active event is fetched from `giveaways`.
+- Expired active events are automatically closed by comparing `end_date` with current UTC time.
+- New events are created via `/new_event`.
 
-### Weighted Randomness (Winner Selection)
-The winner selection isn't just a random list; it’s "weighted." 
-- **Calculation:** `Tickets = 1 (base) + Referral Count`.
-- **SQL Logic:**
-```sql
-SELECT username, wallet_address 
-FROM entries 
-WHERE event_id = target_id 
-ORDER BY (referral_count + 1) * random() DESC 
-LIMIT 3;
-```
+## Reliability Rules
+- Do not assume `update.message` exists; callback updates use `update.callback_query`.
+- Use common reply helpers for safe response handling.
+- Avoid leaking raw backend exceptions to users.
+- Keep structured logs for operational debugging.
 
-## 4. State Management
-The registration flow uses a ConversationHandler:
-
-- **State 0 (TERMS):** Validates the user's agreement.
-
-- **State 1 (WALLET):** Captures and validates the crypto address format.
+## Deployment Notes
+- Default runtime is a single Telegram worker (`python bot.py`).
+- `app.py` is optional and should be deployed separately only when an HTTP health endpoint is required.

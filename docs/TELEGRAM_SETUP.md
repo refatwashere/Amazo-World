@@ -1,25 +1,29 @@
-# 📡 Telegram Infrastructure Setup
+# Telegram Setup
 
-To build a professional community for **Amazo-World**, you must integrate three distinct components.
+## 1. Create Bot with BotFather
+1. Open `@BotFather`
+2. Run `/newbot`
+3. Save the generated token as `BOT_TOKEN`
+4. Optional branding:
+   - `/setuserpic`
+   - `/setdescription`
+   - `/setabouttext`
 
-## 1. The Bot (@BotFather)
-1. **Create:** Message `@BotFather` and use the `/newbot` command.
-2. **Branding:** - `/setuserpic`: Upload the project logo.
-   - `/setdescription`: Write a 1-sentence hook (e.g., "The ultimate referral-based giveaway engine.")
-3. **Privacy:** Use `/setprivacy` and set it to **Disabled** if you want the bot to read messages in your group for future features.
+## 2. Admin Account
+- Set your Telegram numeric user id as `ADMIN_ID`
+- Admin-only commands are restricted by this id
 
-## 2. The Announcement Channel
-The Channel is for "Read-Only" official news.
-1. Create a new Channel (Public or Private).
-2. **Add Bot as Admin:** Give it the permission to `Post Messages`.
-3. **Link to Bot:** Mention your bot's username in the Channel description.
+## 3. Community Channels (Optional)
+- Announcement channel for updates
+- Discussion group for engagement
+- Add the bot as admin only with permissions it needs
 
-## 3. The Community Group
-The Group is where the "World" happens—chatting and engagement.
-1. Create a new Group.
-2. **Add Bot as Admin:** Ensure it can `Pin Messages` and `Delete Messages` (for future spam protection).
-3. **Integration:** Link the Group to your Announcement Channel in the Group Settings so comments on posts show up in the chat.
+## 4. Deep-Link Referrals
+- Referral links follow:
+  `https://t.me/<bot_username>?start=<referrer_user_id>`
+- The bot validates this payload and ignores malformed values.
 
-## 4. Integration Logic
-- **Member Check:** The bot uses the `get_chat_member` API method to verify if a user has joined the Channel/Group before allowing them to enter a giveaway. 
-- **Broadcasts:** Use the `/broadcast` command to send updates to all users who have interacted with the bot, even if they aren't active in the group.
+## 5. Security Checklist
+- Keep bot token private
+- Never commit `.env`
+- Rotate credentials immediately if exposed in logs or screenshots

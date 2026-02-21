@@ -1,0 +1,2 @@
+"""Amazo-World bot package."""
+
