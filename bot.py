@@ -86,14 +86,22 @@ async def terms_accepted(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return WALLET
 
 async def save_wallet(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Saves the user to the database and handles referral increments."""
-    wallet = update.message.text
+    wallet = update.message.text.strip()
+    
+    # Basic validation: SOL addresses are ~44 chars, ETH are 42 chars starting with 0x
+    if len(wallet) < 30 or len(wallet) > 50:
+        await update.message.reply_text(
+            "⚠️ That doesn't look like a valid SOL or ETH address.\n"
+            "Please check your wallet address and send it again:"
+        )
+        return WALLET # Keeps them in the input state
+
     user = update.message.from_user
     event_id = context.user_data.get('current_event_id')
     referrer = context.user_data.get('referred_by')
 
     if referrer == user.id:
-        referrer = None # Prevent self-referrals
+        referrer = None
 
     try:
         data = {
@@ -112,11 +120,12 @@ async def save_wallet(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         await update.message.reply_text(
             f"✅ Successfully registered for Event #{event_id}!\n\n"
-            f"🔗 **Your Unique Referral Link:**\n{ref_link}\n\n"
-            "Share this link! Every person who joins gives you +1 ticket in the final draw."
+            f"🔗 **Your Unique Referral Link:**\n`{ref_link}`\n\n"
+            "_Note: You must join future events first before your link counts for them!_"
         )
     except Exception as e:
-        await update.message.reply_text("Error saving data. Please try again or contact an admin.")
+        # Supabase throws an error if they violate the unique constraint (already entered)
+        await update.message.reply_text("Error saving data. You might already be registered for this event.")
         logging.error(f"Save error: {e}")
 
     return ConversationHandler.END
