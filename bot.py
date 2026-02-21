@@ -37,17 +37,52 @@ async def get_active_event():
 
 # --- USER COMMANDS ---
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Initializes the bot and captures referral IDs."""
+    """Initializes the bot with branding and captures referrals."""
+    user = update.message.from_user
+    
+    # 1. Handle Referral Logic
     if context.args:
-        context.user_data['referred_by'] = int(context.args[0])
+        # Don't let users refer themselves
+        ref_id = int(context.args[0])
+        if ref_id != user.id:
+            context.user_data['referred_by'] = ref_id
 
-    await update.message.reply_text(
-        "🌐 **Welcome to Amazo-World!** 🌐\n\n"
-        "The ultimate referral-based giveaway community.\n"
-        "To enter the current giveaway and get your unique link, use /enter",
-        parse_mode='Markdown'
+    # 2. Branded Banner (Use a link to your hosted image)
+    # If you don't have a link yet, you can send it as a local file.
+    banner_url = "https://your-hosting.com/amazo_welcome_banner.jpg" 
+
+    welcome_text = (
+        f"👋 **Welcome to the Amazo-World, {user.first_name}!**\n\n"
+        "You've entered the hub of referral-based giveaways. "
+        "Our mission is to reward our most active community members with "
+        "transparent, weighted draws.\n\n"
+        "🚀 **Current Status:** Event #1 is LIVE!\n"
+        "👥 **Your Power:** Every friend you invite = +1 Ticket."
     )
 
+    # 3. Inline Buttons for a "Mini App" feel
+    keyboard = [
+        [InlineKeyboardButton("💎 Enter Giveaway", callback_data="start_entry")],
+        [InlineKeyboardButton("📜 FAQ & Rules", callback_data="show_faq")],
+        [InlineKeyboardButton("🏆 Leaderboard", callback_data="show_lb")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    try:
+        # Try sending with a photo
+        await update.message.reply_photo(
+            photo=banner_url,
+            caption=welcome_text,
+            reply_markup=reply_markup,
+            parse_mode='Markdown'
+        )
+    except:
+        # Fallback to text if image fails
+        await update.message.reply_text(
+            welcome_text,
+            reply_markup=reply_markup,
+            parse_mode='Markdown'
+        )
 async def enter_giveaway(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Starts the entry flow with T&C."""
     event = await get_active_event()
@@ -322,6 +357,10 @@ def main():
     app.add_handler(CommandHandler("pick", pick_winners))
     app.add_handler(CommandHandler("broadcast", broadcast))
 
+    # Inside your main() function, add these CallbackQueryHandlers
+    app.add_handler(CallbackQueryHandler(enter_giveaway, pattern='^start_entry$'))
+    app.add_handler(CallbackQueryHandler(faq_command, pattern='^show_faq$'))
+    app.add_handler(CallbackQueryHandler(leaderboard, pattern='^show_lb$'))
     logging.info("Bot is starting...")
     app.run_polling()
 
