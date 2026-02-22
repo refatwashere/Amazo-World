@@ -1,0 +1,24 @@
+services:
+  - type: worker
+    name: amazo-world-bot
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python bot.py
+    envVars:
+      - key: BOT_TOKEN
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+      - key: ADMIN_ID
+        sync: false
+
+# Optional health endpoint service (must not run bot polling):
+#  - type: web
+#    name: amazo-world-health
+#    runtime: python
+#    plan: free
+#    buildCommand: pip install -r requirements.txt
+#    startCommand: python app.py

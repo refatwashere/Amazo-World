@@ -63,8 +63,23 @@ python app.py
 - Build command: `pip install -r requirements.txt`
 - Start command: `python bot.py`
 - Set environment variables in Render dashboard
+- Scale worker count to exactly `1`
+
+### Single Poller Rule (Critical)
+- Never run `python bot.py` in more than one place using the same `BOT_TOKEN`.
+- If Render worker is running, stop local bot sessions and any duplicate worker/web services that also start polling.
 
 If you need an HTTP health endpoint, deploy `app.py` as a separate web service.
+
+## Troubleshooting
+### `409 Conflict` from `getUpdates`
+- Symptom: `telegram.error.Conflict: terminated by other getUpdates request`
+- Cause: multiple active pollers using the same bot token
+- Resolution:
+  1. Keep exactly one Render worker running `python bot.py`
+  2. Stop any duplicate Render services or local bot process
+  3. Redeploy the single worker
+  4. If token was exposed, rotate in BotFather and update Render `BOT_TOKEN`
 
 ## Commands
 User:

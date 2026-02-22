@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import logging
+import os
 
+from telegram.error import Conflict
 from telegram.ext import (
     Application,
     CallbackQueryHandler,
@@ -20,13 +22,38 @@ from amazo_bot.services.giveaway_service import GiveawayService
 from amazo_bot.services.supabase_service import SupabaseService
 
 
+def log_boot_fingerprint() -> None:
+    service_name = os.getenv("RENDER_SERVICE_NAME", "unknown-service")
+    instance_id = os.getenv("RENDER_INSTANCE_ID", os.getenv("HOSTNAME", "unknown-instance"))
+    commit_sha = os.getenv("RENDER_GIT_COMMIT", "unknown-commit")
+    environment = os.getenv("RENDER_ENVIRONMENT", os.getenv("ENVIRONMENT", "unknown-env"))
+    pid = os.getpid()
+    logging.info(
+        "Boot fingerprint | service=%s instance=%s env=%s commit=%s pid=%s",
+        service_name,
+        instance_id,
+        environment,
+        commit_sha,
+        pid,
+    )
+
+
 async def on_error(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
     update_id = getattr(update, "update_id", "unknown")
+    if isinstance(context.error, Conflict):
+        logging.error(
+            "Telegram polling conflict detected for update_id=%s. "
+            "Another process is polling with the same BOT_TOKEN. "
+            "Keep exactly one running worker for this token.",
+            update_id,
+        )
+        return
     logging.exception("Unhandled exception for update_id=%s", update_id, exc_info=context.error)
 
 
 def build_application() -> Application:
     configure_logging()
+    log_boot_fingerprint()
     settings = load_settings()
 
     supabase_service = SupabaseService(
@@ -68,4 +95,3 @@ def build_application() -> Application:
 
     app.add_error_handler(on_error)
     return app
-
